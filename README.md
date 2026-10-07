@@ -1,21 +1,23 @@
 # CRM Tool Nest
 
-Backend CRM đang trong giai đoạn phát triển, xây dựng bằng NestJS, TypeScript, PostgreSQL và Drizzle ORM.
+A CRM backend in development, built with NestJS, TypeScript, PostgreSQL, and Drizzle ORM.
 
-> **Trạng thái:** Đây chưa phải ứng dụng production-ready. Các module users, departments và auth chưa hoàn thiện; một số cấu hình runtime cũng chưa được nối vào ứng dụng. Seed hiện chỉ dành cho môi trường development và cần được rà soát trước khi sử dụng.
+> **Project status:** This project is not production-ready yet. The users, departments, and authentication features are incomplete, and some runtime configuration is not wired into the application. The seed scripts are for local development only and must be reviewed before use.
 
-## Yêu cầu
+## Requirements
 
-- Node.js 22 trở lên
-- pnpm 12.8.1 (Corepack được khuyến nghị)
-- PostgreSQL khi cần chạy migration hoặc seed
+- Node.js 22 or later
+- pnpm 12.8.1 (Corepack is recommended)
+- PostgreSQL for database migrations and seeding
+
+Enable Corepack and activate the project pnpm version:
 
 ```bash
 corepack enable
 corepack prepare pnpm@12.8.1 --activate
 ```
 
-## Bắt đầu nhanh
+## Getting started
 
 ```bash
 git clone <repository-url>
@@ -23,56 +25,87 @@ cd crm-tool-nest
 pnpm install
 ```
 
-Tạo file môi trường cục bộ từ mẫu:
+Create a local environment file from the example:
 
 ```bash
 cp .env.example .env
 ```
 
-Trên PowerShell:
+In PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Điền thông tin kết nối PostgreSQL trong `.env`. Chỉ dùng thông tin local/dev; không commit file `.env` hoặc secrets.
+Set `DATABASE_URL` in `.env` to point to a local PostgreSQL database. Use local development credentials only. Never commit `.env` files or secrets.
 
-Chạy ứng dụng ở chế độ watch:
+Start the application in watch mode:
 
 ```bash
 pnpm start:dev
 ```
 
-## Các lệnh thường dùng
+## Database migrations
 
-| Lệnh                | Mục đích                                                       |
-| ------------------- | -------------------------------------------------------------- |
-| `pnpm start:dev`    | Chạy ứng dụng ở chế độ watch                                   |
-| `pnpm build`        | Build ứng dụng                                                 |
-| `pnpm lint`         | Chạy Oxlint trên source, tests và seed scripts                 |
-| `pnpm format`       | Format các file TypeScript trong `src/` và `test/`             |
-| `pnpm format:check` | Kiểm tra format toàn repo                                      |
-| `pnpm typecheck`    | Kiểm tra kiểu TypeScript của ứng dụng                          |
-| `pnpm test`         | Chạy unit tests                                                |
-| `pnpm test:e2e`     | Chạy end-to-end tests                                          |
-| `pnpm check:ci`     | Chạy các kiểm tra CI: lint, typecheck, unit/e2e tests và build |
-| `pnpm db:generate`  | Tạo migration từ Drizzle schema                                |
-| `pnpm db:migrate`   | Áp dụng migration                                              |
-| `pnpm db:studio`    | Mở Drizzle Studio                                              |
+**Commit database migrations to Git.** A migration is a versioned record of a database schema change. It lets every developer and deployment environment apply the same changes in the same order, rather than relying on someone to recreate the database manually.
 
-Các lệnh database cần `DATABASE_URL` trỏ tới database PostgreSQL đã tạo. Không chạy `pnpm db:push` trên môi trường dùng chung/production nếu chưa xem xét thay đổi schema và có quy trình migration rõ ràng.
+This repository uses Drizzle. Keep all of the following in Git:
 
-> **Seed:** Không chạy `pnpm db:seed` trên dữ liệu thật. Seed hiện dùng mật khẩu mẫu cố định và role mapping cần được sửa trước khi dùng; chỉ sử dụng khi đã hiểu tác động và đang ở database local có thể xóa.
+- Generated SQL migration files in `drizzle/` (for example, `0000_*.sql`).
+- Drizzle metadata in `drizzle/meta/`, including `_journal.json` and the matching snapshot files.
+- The schema definitions in `src/database/schema/`.
+
+The SQL migration contains the actual database changes. The journal records migration order, and the snapshots let Drizzle compare schema versions when generating future migrations. These files work together; do not commit only the schema definitions or only the SQL file.
+
+If migration files are ignored or missing from Git, another developer who clones the project may be unable to create the expected database schema or apply the correct changes. Environments can drift apart, and later migrations may be generated from an incomplete history. Ignoring migrations does not make a database change portable.
+
+When changing the database schema:
+
+1. Update the relevant Drizzle schema in `src/database/schema/`.
+2. Generate a migration:
+
+   ```bash
+   pnpm db:generate
+   ```
+
+3. Review the generated SQL and metadata. Make sure the migration is safe and matches the intended change.
+4. Commit the schema changes, generated SQL migration, and related `drizzle/meta/` files together.
+5. Apply pending migrations to your local database:
+
+   ```bash
+   pnpm db:migrate
+   ```
+
+Migration commands require `DATABASE_URL` to point to an existing PostgreSQL database. Avoid `pnpm db:push` on shared or production databases; use reviewed, versioned migrations instead. Do not edit a migration that may already have been applied to a shared environment. Create a new migration to correct it.
+
+## Common commands
+
+| Command             | Purpose                                          |
+| ------------------- | ------------------------------------------------ |
+| `pnpm start:dev`    | Run the application in watch mode                |
+| `pnpm build`        | Build the application                            |
+| `pnpm lint`         | Run Oxlint on source, tests, and seed scripts    |
+| `pnpm format`       | Format TypeScript files under `src/` and `test/` |
+| `pnpm format:check` | Check formatting across the repository           |
+| `pnpm typecheck`    | Type-check the application                       |
+| `pnpm test`         | Run unit tests                                   |
+| `pnpm test:e2e`     | Run end-to-end tests                             |
+| `pnpm check:ci`     | Run lint, typecheck, unit/e2e tests, and build   |
+| `pnpm db:generate`  | Generate a migration from the Drizzle schema     |
+| `pnpm db:migrate`   | Apply pending migrations                         |
+| `pnpm db:studio`    | Open Drizzle Studio                              |
+
+> **Seed data:** Do not run `pnpm db:seed` against real or shared data. The current seed scripts use a fixed sample password and need their role mapping reviewed. Use them only with a disposable local development database.
 
 ## Quality gates
 
-Các hook Git được cài tự động qua `pnpm install`:
+Git hooks are installed by `pnpm install`:
 
-- **Trước mỗi commit:** Husky chạy `lint-staged` (Oxlint và Prettier trên file staged phù hợp), sau đó chạy unit tests. Commit bị từ chối nếu một bước thất bại.
-- **Định dạng commit:** Commitlint áp dụng Conventional Commits qua hook `commit-msg`.
-- **GitHub Actions:** Chạy lint, typecheck, unit/e2e tests và build khi push hoặc tạo pull request.
+- **Before each commit:** Husky runs `lint-staged` (Oxlint and Prettier on applicable staged files), then runs the unit tests. If either step fails, Git rejects the commit.
+- **Commit messages:** Commitlint checks messages against Conventional Commits using the `commit-msg` hook.
+- **GitHub Actions:** CI runs lint, typecheck, unit/e2e tests, and build on pushes and pull requests.
 
-Ví dụ commit hợp lệ:
+Examples of valid commit messages:
 
 ```text
 feat(users): add user creation endpoint
@@ -80,25 +113,25 @@ fix(auth): reject expired refresh token
 docs: improve local setup instructions
 ```
 
-Trước khi mở pull request, có thể chạy toàn bộ gate CI ở local:
+Run the CI checks locally before opening a pull request:
 
 ```bash
 pnpm check:ci
 ```
 
-Hook local có thể bị bỏ qua; để bắt buộc CI thành điều kiện merge, bật **required status check** cho workflow kiểm tra chất lượng trong branch protection/ruleset của GitHub.
+Local Git hooks can be bypassed. To make CI mandatory before merging, configure the workflow's status check as required in the GitHub branch protection rules or ruleset.
 
-## Cấu trúc chính
+## Project structure
 
 ```text
 src/
-  common/       Hằng số và thành phần dùng chung
-  config/       Cấu hình ứng dụng
-  database/     Drizzle schema và kết nối database
-  modules/      Các feature theo domain (users, auth, departments)
-scripts/        Seed và tiện ích phát triển
-drizzle/        Migration và metadata Drizzle
+  common/       Shared constants and components
+  config/       Application configuration
+  database/     Drizzle schemas and database connection
+  modules/      Domain features (users, auth, departments)
+scripts/        Seed and development utilities
+drizzle/        SQL migrations and Drizzle metadata
 test/           End-to-end tests
 ```
 
-Khi thêm feature, giữ controller mỏng, đặt nghiệp vụ trong service/application layer và truy cập dữ liệu qua repository hoặc lớp database phù hợp. Thêm validation và tests cùng với mỗi endpoint.
+When adding a feature, keep controllers thin, put business logic in the service/application layer, and access data through an appropriate repository or database layer. Add input validation and tests with each endpoint.
