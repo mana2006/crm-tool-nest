@@ -1,10 +1,10 @@
 import * as argon2 from 'argon2';
 import { eq } from 'drizzle-orm';
-import { db } from '../src/database/drizzle';
-import { roles, users } from '../src/database/schema';
-import { UserStatus } from '../src/common/constants/user.constants';
+import { roles, users } from '../src/database/drizzle/schema';
+import { UserStatus } from '../src/shared/constants/user.constants';
+import { DB } from './seeds';
 
-export async function seedUsers() {
+export async function seedUsers(db: DB) {
   console.log('Seeding users...\n');
   const passwordHash = await argon2.hash('Password123!');
 

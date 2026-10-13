@@ -26,9 +26,10 @@ const config: Config = {
   // moduleNameMapper: pathsToModuleNameMapper(paths, { prefix: '<rootDir>/' }),
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^@constant$': '<rootDir>/src/shared/constants/index',
-    '^@constant/(.*)$': '<rootDir>/src/shared/constants/$1',
+    '^@constant$': '<rootDir>/src/common/constants/index',
+    '^@constant/(.*)$': '<rootDir>/src/common/constants/$1',
     '^@shared/(.*)$': '<rootDir>/src/shared/$1',
+    '^@common/(.*)$': '<rootDir>/src/common/$1',
     '^@modules/(.*)$': '<rootDir>/src/modules/$1',
   },
   collectCoverageFrom: [
