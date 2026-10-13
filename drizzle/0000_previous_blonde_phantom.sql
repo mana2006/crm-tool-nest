@@ -5,7 +5,7 @@ CREATE TABLE "email_verification_tokens" (
 	"user_id" integer NOT NULL,
 	"token_hash" varchar(255) NOT NULL,
 	"expires_at" timestamp with time zone NOT NULL,
-	"uses_at" timestamp with time zone NOT NULL,
+	"uses_at" timestamp with time zone,
 	"created_at" timestamp with time zone NOT NULL
 );
 --> statement-breakpoint
@@ -14,7 +14,7 @@ CREATE TABLE "password_reset_tokens" (
 	"user_id" integer NOT NULL,
 	"token_hash" varchar(255) NOT NULL,
 	"expires_at" timestamp with time zone NOT NULL,
-	"uses_at" timestamp with time zone NOT NULL,
+	"uses_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -25,7 +25,7 @@ CREATE TABLE "roles" (
 	"is_active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deteled_at" timestamp with time zone
+	"deleted_at" timestamp with time zone
 );
 --> statement-breakpoint
 CREATE TABLE "users" (

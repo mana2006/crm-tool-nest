@@ -14,7 +14,7 @@ import {
   type Gender as GenderType,
   UserStatus,
   type UserStatus as UserStatusType,
-} from '../../common/constants/user.constants.js';
+} from '../../../shared/constants/user.constants.js';
 import { roles } from './roles.schema.js';
 
 export const userStatusEnum = pgEnum(

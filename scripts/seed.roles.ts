@@ -1,7 +1,7 @@
-import { db } from '../src/database/drizzle';
-import { roles } from '../src/database/schema';
+import { roles } from '../src/database/drizzle/schema';
+import { DB } from './seeds';
 
-export async function seedRoles() {
+export async function seedRoles(db: DB) {
   console.log('Seeding roles...\n');
 
   await db

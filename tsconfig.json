@@ -18,15 +18,14 @@
     "skipLibCheck": true,
     "strict": true,
     "strictPropertyInitialization": false,
-    "rootDir": "./src",
     "paths": {
       "@/*": ["./src/*"],
-      "@constant": ["./src/common/constants/index"],
-      "@constant/*": ["./src/common/constants/*"],
-      "@common/*": ["./src/common/*"],
+      "@constant": ["./src/shared/constants/index"],
+      "@constant/*": ["./src/shared/constants/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@common/*": ["./src/shared/*"],
       "@modules/*": ["./src/modules/*"]
     }
   },
-  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
