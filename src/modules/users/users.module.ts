@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { UserController } from './presentation/user.controller';
+import { DrizzleModule } from '@/database/drizzle/drizzle.module';
 import { UserPort } from '@/modules/users/application/ports/user.port';
 import { UserRepository } from '@/modules/users/infrastructure/repositories/user.repository';
-import { DrizzleModule } from '@/database/drizzle/drizzle.module';
+import { Module } from '@nestjs/common';
+import { UserController } from './presentation/user.controller';
 
 @Module({
   imports: [DrizzleModule],

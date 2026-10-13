@@ -1,10 +1,10 @@
 import { LoginUseCase } from '@/modules/auth/application/use-cases/login.use-case';
 import { JwtStrategy } from '@/modules/auth/infrastructure/passport/jwt.strategy';
 import { LocalAuthGuard } from '@/modules/auth/infrastructure/passport/local-auth.guard';
+import { UserEntity } from '@/modules/users/domain/entities/user.entity';
+import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { LoginRequestDto } from './dto/login-request.dto';
-import { CurrentUser } from '@/shared/decorators/current-user.decorator';
-import { UserEntity } from '@/modules/users/domain/entities/user.entity';
 
 @Controller('auth')
 export class AuthController {

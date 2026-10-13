@@ -1,11 +1,11 @@
+import { validateEnv } from '@/config/envs';
 import { DrizzleModule } from '@/database/drizzle/drizzle.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './modules/users/users.module';
-import { validateEnv } from '@/config/envs';
 import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
