@@ -80,7 +80,7 @@ export class AuthController {
     @CurrentUser() user: UserEntity,
     @Req() req: Request,
   ): Promise<{ message: string }> {
-    // this.logoutUseCase.execute()
+    this.logoutUseCase.execute();
 
     return {
       message: 'Logout successfully.',
