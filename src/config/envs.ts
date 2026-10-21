@@ -1,5 +1,7 @@
 import z from 'zod';
 
+process.loadEnvFile();
+
 export const envSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'production', 'staging', 'test'])
@@ -30,6 +32,7 @@ export type Env = z.infer<typeof envSchema>;
 
 export function validateEnv(config: Record<string, unknown>): Env {
   const result = envSchema.safeParse(config);
+
   if (!result.success) {
     const message = result.error.issues
       .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
@@ -39,3 +42,5 @@ export function validateEnv(config: Record<string, unknown>): Env {
 
   return result.data;
 }
+
+export const envs: Readonly<Env> = validateEnv(process.env);

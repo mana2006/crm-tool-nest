@@ -2,14 +2,19 @@ import {
   DrizzleAsyncProvider,
   type DrizzleDB,
 } from '@/database/drizzle/drizzle.provider';
-import { users } from '@/database/drizzle/schema/users.schema';
-import { UserPort } from '@/modules/users/application/ports/user.port';
+import { roles } from '@/database/drizzle/schema';
+import { UserInsert, users } from '@/database/drizzle/schema/users.schema';
+import { UserRepositoryPort } from '@/modules/users/application/ports/user-repository.port';
 import { UserEntity } from '@/modules/users/domain/entities/user.entity';
 import { Inject, Injectable } from '@nestjs/common';
-import { eq, SQL } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
+
+type UserRowWithRole = typeof users.$inferSelect & {
+  role: typeof roles.$inferSelect;
+};
 
 @Injectable()
-export class UserRepository extends UserPort {
+export class UserRepository extends UserRepositoryPort {
   constructor(
     @Inject(DrizzleAsyncProvider)
     private readonly db: DrizzleDB,
@@ -18,19 +23,49 @@ export class UserRepository extends UserPort {
   }
 
   async findById(id: number): Promise<UserEntity | null> {
-    return this.findOne(eq(users.id, id));
+    const user = await this.findOne({
+      where: eq(users.id, id),
+      with: { role: true },
+    });
+
+    return user ? this.toEntity(user as UserRowWithRole) : null;
   }
 
   async findByEmail(email: string): Promise<UserEntity | null> {
-    return this.findOne(eq(users.email, email));
+    const user = await this.findOne({
+      where: eq(users.email, email),
+      with: { role: true },
+    });
+
+    return user ? this.toEntity(user as UserRowWithRole) : null;
   }
 
-  private async findOne(where: SQL) {
-    const [user] = await this.db.select().from(users).where(where).limit(1);
-    return this.toEntity(user);
+  async create(data: UserInsert): Promise<Partial<UserInsert> | null> {
+    const [inserted] = await this.db.insert(users).values(data).returning();
+
+    return inserted;
   }
 
-  private toEntity(row: typeof users.$inferSelect) {
-    return row ? Object.assign(new UserEntity(), row) : null;
+  private async findOne(
+    condition: Parameters<DrizzleDB['query']['users']['findFirst']>[0],
+  ) {
+    return (await this.db.query.users.findFirst(condition)) || null;
+  }
+
+  private toEntity(row: UserRowWithRole): UserEntity {
+    const { role, ...userFields } = row;
+
+    return Object.assign(new UserEntity(), {
+      ...userFields,
+      role: this.toRoleEntity(role),
+    });
+  }
+
+  private toRoleEntity(row: typeof roles.$inferSelect) {
+    return {
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+    };
   }
 }

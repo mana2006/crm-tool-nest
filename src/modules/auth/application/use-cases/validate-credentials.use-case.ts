@@ -1,12 +1,12 @@
-import { PasswordHasherPort } from '@/modules/auth/application/ports/password-hasher.port';
-import { UserPort } from '@/modules/users/application/ports/user.port';
+import { UserRepositoryPort } from '@/modules/users/application/ports/user-repository.port';
 import { UserEntity } from '@/modules/users/domain/entities/user.entity';
+import { PasswordHasherPort } from '@/shared/security/password-hasher.port';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 
 @Injectable()
 export class ValidateCredentialsUseCase {
   constructor(
-    private readonly users: UserPort,
+    private readonly users: UserRepositoryPort,
     private readonly passwordHasher: PasswordHasherPort,
   ) {}
 

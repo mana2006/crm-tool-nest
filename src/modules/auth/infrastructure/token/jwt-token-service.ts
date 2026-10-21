@@ -3,9 +3,10 @@ import {
   RefreshPayload,
   TokenServicePort,
 } from '@/modules/auth/application/ports/token-service.port';
+import { calculateTimeToLife } from '@/shared/utils/cookie.ulti';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService, TokenExpiredError } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions, TokenExpiredError } from '@nestjs/jwt';
 
 type SecrectKey = 'JWT_ACCESS_SECRET' | 'JWT_REFRESH_SECRET';
 
@@ -21,7 +22,7 @@ export class JwtTokenService extends TokenServicePort {
 
   async signAccess(payload: Record<string, unknown>): Promise<string> {
     return await this.jwt.signAsync(
-      { email: payload.email },
+      { email: payload.email, roleId: payload.roleName },
       {
         secret: this.config.get('JWT_ACCESS_SECRET'),
         expiresIn: this.config.get('JWT_ACCESS_EXPIRY'),
@@ -33,9 +34,13 @@ export class JwtTokenService extends TokenServicePort {
     payload: Record<string, unknown>,
     rememberMe: boolean,
   ): Promise<string> {
-    const expiredsIn = !rememberMe
-      ? this.config.get('JWT_REFRESH_EXPIRY_SHORT')
-      : this.config.get('JWT_REFRESH_EXPIRY_LONG');
+    // const expiredsIn = !rememberMe
+    //   ? this.config.get('JWT_REFRESH_EXPIRY_SHORT')
+    //   : this.config.get('JWT_REFRESH_EXPIRY_LONG');
+
+    const expiredsIn = calculateTimeToLife(
+      rememberMe,
+    ) as JwtSignOptions['expiresIn'];
 
     return await this.jwt.signAsync(
       { email: payload.email },

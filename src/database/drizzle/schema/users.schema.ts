@@ -16,6 +16,8 @@ import {
   type UserStatus as UserStatusType,
 } from '../../../shared/constants/user.constants.js';
 import { roles } from './roles.schema.js';
+import { relations } from 'drizzle-orm';
+import { date } from 'drizzle-orm/pg-core';
 
 export const userStatusEnum = pgEnum(
   'user_status',
@@ -33,14 +35,14 @@ export const users = pgTable(
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     firstName: varchar('first_name', { length: 100 }).notNull(),
     lastName: varchar('last_name', { length: 100 }).notNull(),
-    dateOfBirth: timestamp('date_of_birth', { withTimezone: true }),
+    dateOfBirth: date('date_of_birth', { mode: 'string' }),
     gender: userGenderEnum('gender').notNull().default(Gender.OTHER),
     email: varchar({ length: 255 }).notNull(),
     backupEmail: varchar('backup_email', { length: 255 }),
     backupEmailVerifiedAt: timestamp('backup_email_verified_at', {
       withTimezone: true,
     }),
-    password: varchar().notNull(),
+    password: varchar({ length: 255 }).notNull(),
     roleId: integer('role_id')
       .notNull()
       .references(() => roles.id),
@@ -65,3 +67,9 @@ export const users = pgTable(
     index('users_status_idx').on(table.status),
   ],
 );
+
+export const userRelations = relations(users, ({ one }) => ({
+  role: one(roles, { fields: [users.roleId], references: [roles.id] }),
+}));
+
+export type UserInsert = typeof users.$inferInsert;

@@ -1,3 +1,4 @@
+import { RoleEntity } from '@/modules/roles/domain/entities/role.entity';
 import type {
   Gender as GenderType,
   UserStatus as UserStatusType,
@@ -13,7 +14,7 @@ export class UserEntity {
   backupEmail: string | null;
   backupEmailVerifiedAt: Date | null;
   password: string;
-  roleId: number;
+  role: RoleEntity;
   status: UserStatusType;
   emailVerifiedAt: Date | null;
   phone: string | null;

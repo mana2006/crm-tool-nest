@@ -28,16 +28,25 @@ CREATE TABLE "roles" (
 	"deleted_at" timestamp with time zone
 );
 --> statement-breakpoint
+CREATE TABLE "user_session" (
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "user_session_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+	"user_id" integer NOT NULL,
+	"refresh_token" varchar(255),
+	"revoke_at" timestamp with time zone,
+	"revoke_reason" varchar(255),
+	"created_at" timestamp with time zone
+);
+--> statement-breakpoint
 CREATE TABLE "users" (
 	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "users_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"first_name" varchar(100) NOT NULL,
 	"last_name" varchar(100) NOT NULL,
-	"date_of_birth" timestamp with time zone,
+	"date_of_birth" date,
 	"gender" "user_gender" DEFAULT 'OTHER' NOT NULL,
 	"email" varchar(255) NOT NULL,
 	"backup_email" varchar(255),
 	"backup_email_verified_at" timestamp with time zone,
-	"password" varchar NOT NULL,
+	"password" varchar(255) NOT NULL,
 	"role_id" integer NOT NULL,
 	"status" "user_status" DEFAULT 'PENDING' NOT NULL,
 	"email_verified_at" timestamp with time zone,
@@ -52,6 +61,7 @@ CREATE TABLE "users" (
 --> statement-breakpoint
 ALTER TABLE "email_verification_tokens" ADD CONSTRAINT "email_verification_tokens_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "password_reset_tokens" ADD CONSTRAINT "password_reset_tokens_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "user_session" ADD CONSTRAINT "user_session_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_role_id_roles_id_fk" FOREIGN KEY ("role_id") REFERENCES "public"."roles"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE UNIQUE INDEX "roles_name_idx" ON "roles" USING btree ("name");--> statement-breakpoint
 CREATE UNIQUE INDEX "roles_slug_idx" ON "roles" USING btree ("slug");--> statement-breakpoint
