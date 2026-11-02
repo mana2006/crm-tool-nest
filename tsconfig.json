@@ -25,7 +25,8 @@
       "@shared/*": ["./src/shared/*"],
       "@common/*": ["./src/shared/*"],
       "@modules/*": ["./src/modules/*"]
-    }
+    },
+    "jsx": "react-jsx"
   },
   "exclude": ["node_modules", "dist"]
 }

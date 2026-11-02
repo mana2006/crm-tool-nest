@@ -1,0 +1,1 @@
+ALTER TABLE "user_session" ADD COLUMN "expired_at" timestamp with time zone;

@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 export type DataUserSession = {
   userId: number;
   refreshToken: string;
-  revokeAt: Date;
+  expiredAt: Date;
   revokeReason?: string;
   userAgent: string;
   ip: string;
@@ -12,8 +12,10 @@ export type DataUserSession = {
 
 @Injectable()
 export abstract class UserSessionRepositoryPort {
-  abstract create(data: DataUserSession): Promise<void>;
+  abstract create(data: DataUserSession): Promise<{ insertId: number }>;
+  abstract update(data: Partial<DataUserSession>, id: number): Promise<void>;
   abstract findByTokenHash(token: string): Promise<UserSessionEntity | null>;
+  abstract findById(id: string): Promise<UserSessionEntity | null>;
   abstract revokeByTokenHash(token: string): Promise<void>;
-  abstract revokeAllTokenByUserId(userId: string): Promise<void>;
+  abstract revokeAllTokenByUserId(userId: number): Promise<UserSessionEntity[]>;
 }

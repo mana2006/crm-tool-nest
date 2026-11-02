@@ -1,14 +1,7 @@
 import { type AuthResponseUser } from '@/shared/types';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
 
 export class LoginResponseDto {
-  @IsString()
-  accessToken: string;
-
-  @IsString()
-  expiresIn: Date;
-
   @ApiProperty({
     description: 'User Information',
     example: {

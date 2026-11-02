@@ -1,6 +1,7 @@
 import { UserInsert } from '@/database/drizzle/schema';
 import { UserRepositoryPort } from '@/modules/users/application/ports/user-repository.port';
 import { CreateUserRequestDto } from '@/modules/users/presentation/dto/create-user-request.dto';
+import { MailService } from '@/shared/mail/mail.service';
 import { PasswordHasherPort } from '@/shared/security/password-hasher.port';
 import { ConflictException, Injectable } from '@nestjs/common';
 
@@ -9,6 +10,7 @@ export class CreateUseCase {
   constructor(
     private readonly userRepository: UserRepositoryPort,
     private readonly passwordHasher: PasswordHasherPort,
+    private readonly mailService: MailService,
   ) {}
 
   async execute(data: CreateUserRequestDto) {

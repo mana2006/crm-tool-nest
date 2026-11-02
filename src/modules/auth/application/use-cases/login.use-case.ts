@@ -1,16 +1,22 @@
+import { Env } from '@/config/envs';
+import { TokenServicePort } from '@/modules/auth/application/ports/token-service.port';
 import { UserSessionRepositoryPort } from '@/modules/auth/application/ports/user-session-repository.port';
-import { JwtTokenService } from '@/modules/auth/infrastructure/token/jwt-token-service';
 import { UserEntity } from '@/modules/users/domain/entities/user.entity';
+import { RedisService } from '@/shared/redis';
 import { AuthResponseUser, RoleIdentity } from '@/shared/types';
 import { calculateTimeToLife } from '@/shared/utils/cookie.ulti';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import ms, { type StringValue } from 'ms';
 
 @Injectable()
 export class LoginUseCase {
+  private readonly logger = new Logger(LoginUseCase.name);
   constructor(
-    private readonly jwtTokenService: JwtTokenService,
+    private readonly jwtTokenService: TokenServicePort,
     private readonly userSessionReporitory: UserSessionRepositoryPort,
+    private readonly config: ConfigService<Env, true>,
+    // private readonly redis: RedisService,
   ) {}
 
   async execute(data: {
@@ -29,26 +35,32 @@ export class LoginUseCase {
       { email: data.user.email, roleName: data.user.role.slug },
       data.rememberMe,
     );
-    const sessionTtl = calculateTimeToLife(data.rememberMe);
+    const timeToLife = ms(
+      calculateTimeToLife(data.rememberMe, false, this.config) as StringValue,
+    );
 
-    const sessionExpiry = new Date(Date.now() + ms(sessionTtl as StringValue));
-    const accessToken = await this.jwtTokenService.signAccess({
-      email: data.user.email,
-      roleName: data.user.role.slug,
-    });
+    const expiredRefreshToken = new Date(Date.now() + timeToLife);
 
-    this.userSessionReporitory.create({
+    const sessionId = await this.userSessionReporitory.create({
       userId: data.user.id,
       refreshToken: refreshToken,
-      revokeAt: sessionExpiry,
+      expiredAt: expiredRefreshToken,
       userAgent: data.userAgent,
       ip: data.ip,
     });
 
+    const sessionData = {
+      email: data.user.email,
+      roleName: data.user.role.slug,
+      sessionId: sessionId.insertId.toString(),
+    };
+
+    const accessToken = await this.jwtTokenService.signAccess(sessionData);
+
     return {
       accessToken: accessToken,
       refreshToken: refreshToken,
-      expiredsIn: sessionExpiry,
+      expiredsIn: expiredRefreshToken,
       user: {
         id: data.user.id.toString(),
         email: data.user.email,

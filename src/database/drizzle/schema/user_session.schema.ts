@@ -9,7 +9,8 @@ export const userSession = pgTable('user_session', {
   userId: integer('user_id')
     .notNull()
     .references(() => users.id),
-  refreshToken: varchar('refresh_token', { length: 255 }),
+  refreshToken: varchar('refresh_token', { length: 255 }).notNull(),
+  expiredAt: timestamp('expired_at', { withTimezone: true }).notNull(),
   revokeAt: timestamp('revoke_at', { withTimezone: true }),
   revokeReason: varchar('revoke_reason', { length: 255 }),
   userAgent: varchar('user_agent', { length: 255 }),

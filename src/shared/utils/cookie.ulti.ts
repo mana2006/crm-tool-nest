@@ -1,19 +1,20 @@
-import { envs } from '@/config/envs';
+import { Env } from '@/config/envs';
 import { COOKIES } from '@/shared/constants/auth.constants';
 import { CookieKey } from '@/shared/types';
+import { ConfigService } from '@nestjs/config';
 import { CookieOptions, Request, Response } from 'express';
 
-type CookieSetOption = {
-  name: CookieKey;
-  value: string;
-  expiredAt: Date;
-  options?: CookieOptions;
-};
-
-export const calculateTimeToLife = (isRememberMe: boolean): string => {
+export const calculateTimeToLife = (
+  isRememberMe: boolean,
+  isAccessToken: boolean | undefined,
+  config: ConfigService<Env, true>,
+): string => {
+  if (isAccessToken) {
+    return config.get('JWT_ACCESS_EXPIRY', { infer: true });
+  }
   return isRememberMe
-    ? envs.JWT_REFRESH_EXPIRY_LONG
-    : envs.JWT_REFRESH_EXPIRY_SHORT;
+    ? config.get('JWT_REFRESH_EXPIRY_LONG', { infer: true })
+    : config.get('JWT_REFRESH_EXPIRY_SHORT', { infer: true });
 };
 
 export const setCookie = (
@@ -21,7 +22,8 @@ export const setCookie = (
   name: CookieKey,
   value: string,
   expiresAt: Date,
-  options?: CookieOptions,
+  options: CookieOptions | undefined,
+  config: ConfigService<Env, true>,
 ): void => {
   const maxAge = expiresAt.getTime() - Date.now();
   const cookieOptions: CookieOptions = {
@@ -29,10 +31,13 @@ export const setCookie = (
     httpOnly: options?.httpOnly ?? true,
     path: options?.path ?? '/',
     sameSite:
-      envs.NODE_ENV === 'development'
+      config.get('NODE_ENV', { infer: true }) === 'development'
         ? (options?.sameSite ?? 'strict')
         : 'none',
-    secure: envs.NODE_ENV === 'development' ? (options?.secure ?? false) : true,
+    secure:
+      config.get('NODE_ENV', { infer: true }) === 'development'
+        ? (options?.secure ?? false)
+        : true,
   };
 
   res.cookie(name, value, cookieOptions);

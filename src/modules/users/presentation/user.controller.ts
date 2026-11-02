@@ -1,8 +1,12 @@
 import { CreateUseCase } from '@/modules/users/application/use-cases/create.use-case';
+import { UpdatePasswordFirstUseCase } from '@/modules/users/application/use-cases/update-password-first.use-case';
+import { UserEntity } from '@/modules/users/domain/entities/user.entity';
 import { CreateUserRequestDto } from '@/modules/users/presentation/dto/create-user-request.dto';
 import { CreateUserResponseDto } from '@/modules/users/presentation/dto/create-user-response.dto';
+import { UpdatePasswordFirstDto } from '@/modules/users/presentation/dto/update-password-first.dto';
+import { CurrentUser } from '@/shared/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/shared/guards/passport/jwt-auth.guard';
-import { Body, Controller, Headers, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiHeader,
@@ -18,7 +22,10 @@ import {
 @UseGuards(JwtAuthGuard)
 @Controller('user')
 export class UserController {
-  constructor(private readonly createUser: CreateUseCase) {}
+  constructor(
+    private readonly createUser: CreateUseCase,
+    private readonly updatePasswordFirstUseCase: UpdatePasswordFirstUseCase,
+  ) {}
 
   @Post('create')
   @ApiOperation({
@@ -43,6 +50,22 @@ export class UserController {
 
     return {
       message: 'Create user succesfully',
+    };
+  }
+
+  @Post('update-password-first')
+  async updatePasswordFirst(
+    @Body() dto: UpdatePasswordFirstDto,
+    @CurrentUser() user: UserEntity,
+  ): Promise<{ success: boolean; message: string }> {
+    const result = await this.updatePasswordFirstUseCase.execute(
+      user.email,
+      dto.password,
+    );
+
+    return {
+      success: result.success,
+      message: result.message,
     };
   }
 }

@@ -22,6 +22,6 @@ export class RoleRepository extends RoleRepositoryPort {
   }
 
   private toEntity(row: typeof roles.$inferSelect) {
-    return Object.assign(new RoleEntity(), { ...roles, id: String(roles.id) });
+    return Object.assign(new RoleEntity(), { ...roles, id: String(row.id) });
   }
 }
