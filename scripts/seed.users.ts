@@ -15,11 +15,11 @@ export async function seedUsers(db: DB) {
   const [managerRole] = await db
     .select()
     .from(roles)
-    .where(eq(roles.slug, 'admin'));
+    .where(eq(roles.slug, 'manager'));
   const [staffRole] = await db
     .select()
     .from(roles)
-    .where(eq(roles.slug, 'admin'));
+    .where(eq(roles.slug, 'staff'));
 
   await db
     .insert(users)

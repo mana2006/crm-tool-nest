@@ -6,18 +6,20 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { QueueModule } from '@/shared/queue/bull-config.module';
 
 @Module({
   imports: [
-    UsersModule,
-    DrizzleModule,
-    AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
       validate: validateEnv,
       envFilePath: ['.env'],
     }),
+    UsersModule,
+    DrizzleModule,
+    AuthModule,
+    QueueModule,
   ],
   controllers: [AppController],
   providers: [AppService],

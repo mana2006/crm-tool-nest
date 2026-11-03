@@ -5,6 +5,7 @@ export const envSchema = z.object({
     .enum(['development', 'production', 'staging', 'test'])
     .default('development'),
   PORT: z.coerce.number().default(8001),
+  FRONTEND_URL: z.string().default('http://localhost:3000'),
   DATABASE_URL: z.string(),
   // JWT
   JWT_ACCESS_SECRET: z.string().min(1, 'JWT_ACCESS_SECRET is required'),
@@ -15,6 +16,7 @@ export const envSchema = z.object({
   // REDIS
   REDIS_HOST: z.string().default('localhost'),
   REDIS_PORT: z.coerce.number().default(6379),
+  REDIS_URL: z.string().default('redis://127.0.0.1:6379'),
   // SMTP
   SMTP_HOST: z.string(),
   SMTP_PORT: z.coerce.number(),
@@ -22,7 +24,7 @@ export const envSchema = z.object({
   SMTP_SERVICE: z.string(),
   SMTP_USER: z.string(),
   SMTP_PASSWORD: z.string(),
-  MAIL_FROM: z.email().optional().default('noreply@example.com'),
+  MAIL_FROM: z.email().optional().default('no-reply@example.com'),
   MAIL_FROM_NAME: z.string().optional().default('CRM-NEST'),
 });
 
@@ -30,6 +32,7 @@ export type Env = z.infer<typeof envSchema>;
 
 export function validateEnv(config: Record<string, unknown>): Env {
   const result = envSchema.safeParse(config);
+
   if (!result.success) {
     const message = result.error.issues
       .map((issue) => `${issue.path.join('.')}: ${issue.message}`)

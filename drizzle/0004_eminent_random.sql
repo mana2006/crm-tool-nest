@@ -1,0 +1,1 @@
+ALTER TABLE "user_session" ALTER COLUMN "expired_at" SET NOT NULL;

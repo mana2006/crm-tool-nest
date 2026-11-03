@@ -1,5 +1,7 @@
-import type {
+import { RoleEntity } from '@/modules/roles/domain/entities/role.entity';
+import {
   Gender as GenderType,
+  UserStatus,
   UserStatus as UserStatusType,
 } from '@shared/constants/user.constants';
 
@@ -13,7 +15,7 @@ export class UserEntity {
   backupEmail: string | null;
   backupEmailVerifiedAt: Date | null;
   password: string;
-  roleId: number;
+  role: RoleEntity;
   status: UserStatusType;
   emailVerifiedAt: Date | null;
   phone: string | null;
@@ -23,4 +25,8 @@ export class UserEntity {
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
+
+  isActive(): boolean {
+    return this.status === UserStatus.ACTIVE;
+  }
 }

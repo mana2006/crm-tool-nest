@@ -6,6 +6,7 @@
     "rootDir": ".",
     "isolatedModules": true
   },
+  "jsx": "react-jsx",
   "include": ["src/**/*.spec.ts", "src/**/*.test.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
