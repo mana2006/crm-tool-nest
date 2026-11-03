@@ -5,7 +5,7 @@ import ts from 'typescript';
 // so they are read from there instead of being duplicated here.
 
 const config: Config = {
-  moduleFileExtensions: ['js', 'json', 'ts'],
+  moduleFileExtensions: ['js', 'json', 'ts', 'tsx'],
   rootDir: '.',
   testRegex: '.*\\.spec\\.ts$',
   extensionsToTreatAsEsm: ['.ts'],
