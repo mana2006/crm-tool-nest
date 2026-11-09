@@ -8,28 +8,29 @@ A CRM backend built with **NestJS 12**, **TypeScript 6**, **PostgreSQL**, and **
 
 ## Tech Stack
 
-| Category            | Technology                                                    |
-| ------------------- | ------------------------------------------------------------- |
-| **Runtime**         | Node.js ≥ 22                                                  |
-| **Language**        | TypeScript 6 (strict mode, ES2023 target)                     |
-| **Framework**       | NestJS 12 (`@nestjs/core`, `@nestjs/platform-express`)        |
-| **Database**        | PostgreSQL 16 via `pg` driver                                 |
-| **ORM**             | Drizzle ORM (`drizzle-orm` + `drizzle-kit`)                   |
-| **Cache / Queue**   | Redis (`ioredis`) · BullMQ (`@nestjs/bullmq`)                 |
-| **Authentication**  | Passport.js (Local + JWT strategies) · `@nestjs/jwt` · Argon2 |
-| **Validation**      | `class-validator` + `class-transformer` (pipes), Zod (env)    |
-| **Email**           | Nodemailer (SMTP/SES) · React Email (JSX templates) · BullMQ  |
-| **API Docs**        | Swagger (`@nestjs/swagger`)                                   |
-| **Security**        | Helmet · CORS · Cookie-based tokens · Throttler               |
-| **Logging**         | Pino (`nestjs-pino` + `pino-http`)                            |
-| **Health Checks**   | `@nestjs/terminus`                                            |
-| **Scheduling**      | `@nestjs/schedule`                                            |
-| **Events**          | `@nestjs/event-emitter`                                       |
-| **Package Manager** | pnpm 12.8.1 (Corepack)                                        |
-| **Linting**         | Oxlint · Prettier                                             |
-| **Testing**         | Jest 30 + ts-jest (ESM) · Supertest (e2e)                     |
-| **Git Hooks**       | Husky · lint-staged · Commitlint (Conventional Commits)       |
-| **CI/CD**           | GitHub Actions (lint → typecheck → test → e2e → build)        |
+| Category            | Technology                                                                 |
+| ------------------- | -------------------------------------------------------------------------- |
+| **Runtime**         | Node.js 24 (`>=24.22.1 <25`, pinned in `.nvmrc`)                           |
+| **Language**        | TypeScript 6 (strict mode, ES2023 target)                                  |
+| **Framework**       | NestJS 12 (`@nestjs/core`, `@nestjs/platform-express`)                     |
+| **Database**        | PostgreSQL 16 via `pg` driver                                              |
+| **ORM**             | Drizzle ORM 0.45 (`drizzle-orm`) + Drizzle Kit 0.31                        |
+| **Cache / Queue**   | Redis 7 (`ioredis` 6) · BullMQ 6 (`@nestjs/bullmq`)                        |
+| **Authentication**  | Passport.js (Local + JWT strategies) · `@nestjs/jwt` · Argon2              |
+| **Validation**      | `class-validator` + `class-transformer` (pipes), Zod 4 (env)               |
+| **Email**           | Nodemailer 10 (SMTP/SES) · React Email + React 19 (JSX templates) · BullMQ |
+| **API Docs**        | Swagger (`@nestjs/swagger`)                                                |
+| **Security**        | Helmet 8 · CORS · Cookie-based tokens · Throttler 6                        |
+| **Logging**         | Pino (`nestjs-pino` + `pino-http`)                                         |
+| **Health Checks**   | `@nestjs/terminus`                                                         |
+| **Scheduling**      | `@nestjs/schedule`                                                         |
+| **Events**          | `@nestjs/event-emitter`                                                    |
+| **Package Manager** | pnpm 12.8.1 (`packageManager` field, Corepack)                             |
+| **Linting**         | Oxlint 1.x · Prettier 3                                                    |
+| **Testing**         | Jest 30 + ts-jest (ESM via `--experimental-vm-modules`) · Supertest (e2e)  |
+| **Git Hooks**       | Husky · lint-staged · Commitlint (Conventional Commits)                    |
+| **Scripts**         | `tsx` (seed scripts)                                                       |
+| **CI/CD**           | GitHub Actions (lint → typecheck → test → e2e → build)                     |
 
 ---
 
@@ -138,10 +139,19 @@ Configured in `tsconfig.json` and mirrored in `jest.config.ts`:
 
 ## Requirements
 
-- Node.js 22 or later
-- pnpm 12.8.1 (Corepack is recommended)
-- PostgreSQL 16+ for database
-- Redis for caching and BullMQ job queues
+- Node.js **24.22.1** or later within the 24.x line (`engines.node`: `>=24.22.1 <25`)
+- pnpm **12.8.1** (declared in `packageManager`; Corepack is recommended)
+- PostgreSQL 16+ for the database
+- Redis 7+ for caching and BullMQ job queues
+
+The Node.js version is pinned in `.nvmrc`. With nvm or fnm:
+
+```bash
+nvm install    # reads .nvmrc (24.22.1)
+nvm use
+```
+
+> nvm-windows does not read `.nvmrc`; run `nvm install 24.22.1` and `nvm use 24.22.1` instead.
 
 Enable Corepack and activate the project pnpm version:
 
@@ -149,6 +159,13 @@ Enable Corepack and activate the project pnpm version:
 corepack enable
 corepack prepare pnpm@12.8.1 --activate
 ```
+
+### pnpm workspace settings
+
+`pnpm-workspace.yaml` holds project-level pnpm settings:
+
+- `allowBuilds` — dependencies allowed to run install/build scripts (`argon2`, `esbuild`, `@parcel/watcher`, `@scarf/scarf`, `msgpackr-extract`, `unrs-resolver`). A new dependency with a native build step must be added here, or it will not be built.
+- `auditConfig.ignoreGhsas` — advisories intentionally ignored by `pnpm audit` (currently `GHSA-gcqx-w48m-w2h4`). Review this list when upgrading dependencies.
 
 ---
 
@@ -176,28 +193,28 @@ Set `DATABASE_URL` in `.env` to point to a local PostgreSQL database. Use local 
 
 ### Environment Variables
 
-| Variable                   | Required | Description                                   |
-| -------------------------- | -------- | --------------------------------------------- |
-| `NODE_ENV`                 | No       | `development` / `production` / `test`         |
-| `PORT`                     | No       | Server port (default: `8001`)                 |
-| `FRONTEND_URL`             | No       | CORS origin (default: `localhost:3000`)       |
-| `DATABASE_URL`             | **Yes**  | PostgreSQL connection string                  |
-| `JWT_ACCESS_SECRET`        | **Yes**  | Secret for signing access tokens              |
-| `JWT_REFRESH_SECRET`       | **Yes**  | Secret for signing refresh tokens             |
-| `JWT_ACCESS_EXPIRY`        | No       | Access token TTL (default: `15m`)             |
-| `JWT_REFRESH_EXPIRY_SHORT` | No       | Short refresh TTL (default: `1d`)             |
-| `JWT_REFRESH_EXPIRY_LONG`  | No       | "Remember me" refresh TTL (default: `7d`)     |
-| `REDIS_HOST`               | No       | Redis host (default: `localhost`)             |
-| `REDIS_PORT`               | No       | Redis port (default: `6379`)                  |
-| `REDIS_URL`                | No       | Redis URL (default: `redis://127.0.0.1:6379`) |
-| `SMTP_HOST`                | **Yes**  | SMTP server hostname                          |
-| `SMTP_PORT`                | **Yes**  | SMTP port                                     |
-| `SMTP_SECURE`              | No       | Use TLS (default: `true`)                     |
-| `SMTP_SERVICE`             | **Yes**  | SMTP service name                             |
-| `SMTP_USER`                | **Yes**  | SMTP username                                 |
-| `SMTP_PASSWORD`            | **Yes**  | SMTP password                                 |
-| `MAIL_FROM`                | No       | Sender email address                          |
-| `MAIL_FROM_NAME`           | No       | Sender display name                           |
+| Variable                   | Required | Description                                                                |
+| -------------------------- | -------- | -------------------------------------------------------------------------- |
+| `NODE_ENV`                 | No       | `development` / `production` / `staging` / `test` (default: `development`) |
+| `PORT`                     | No       | Server port (default: `8001`)                                              |
+| `FRONTEND_URL`             | No       | CORS origin (default: `http://localhost:3000`)                             |
+| `DATABASE_URL`             | **Yes**  | PostgreSQL connection string                                               |
+| `JWT_ACCESS_SECRET`        | **Yes**  | Secret for signing access tokens                                           |
+| `JWT_REFRESH_SECRET`       | **Yes**  | Secret for signing refresh tokens                                          |
+| `JWT_ACCESS_EXPIRY`        | No       | Access token TTL (default: `15m`)                                          |
+| `JWT_REFRESH_EXPIRY_SHORT` | No       | Short refresh TTL (default: `1d`)                                          |
+| `JWT_REFRESH_EXPIRY_LONG`  | No       | "Remember me" refresh TTL (default: `7d`)                                  |
+| `REDIS_HOST`               | No       | Redis host (default: `localhost`)                                          |
+| `REDIS_PORT`               | No       | Redis port (default: `6379`)                                               |
+| `REDIS_URL`                | No       | Redis URL (default: `redis://127.0.0.1:6379`)                              |
+| `SMTP_HOST`                | **Yes**  | SMTP server hostname                                                       |
+| `SMTP_PORT`                | **Yes**  | SMTP port                                                                  |
+| `SMTP_SECURE`              | No       | Use TLS (default: `true`)                                                  |
+| `SMTP_SERVICE`             | **Yes**  | SMTP service name                                                          |
+| `SMTP_USER`                | **Yes**  | SMTP username                                                              |
+| `SMTP_PASSWORD`            | **Yes**  | SMTP password                                                              |
+| `MAIL_FROM`                | No       | Sender email (default: `no-reply@example.com`)                             |
+| `MAIL_FROM_NAME`           | No       | Sender display name (default: `CRM-NEST`)                                  |
 
 Environment variables are validated at startup using **Zod** schemas (`src/config/envs.ts`). The application will not start if required variables are missing or invalid.
 
@@ -246,28 +263,31 @@ Migration commands require `DATABASE_URL` to point to an existing PostgreSQL dat
 
 ## Common Commands
 
-| Command             | Purpose                                          |
-| ------------------- | ------------------------------------------------ |
-| `pnpm start:dev`    | Run the application in watch mode                |
-| `pnpm start:debug`  | Run with debugger attached (watch mode)          |
-| `pnpm build`        | Build the application                            |
-| `pnpm start:prod`   | Run the production build (`node dist/main`)      |
-| `pnpm lint`         | Run Oxlint on source, tests, and seed scripts    |
-| `pnpm lint:fix`     | Run Oxlint with auto-fix                         |
-| `pnpm format`       | Format TypeScript files under `src/` and `test/` |
-| `pnpm format:check` | Check formatting across the repository           |
-| `pnpm typecheck`    | Type-check the application                       |
-| `pnpm test`         | Run unit tests                                   |
-| `pnpm test:watch`   | Run unit tests in watch mode                     |
-| `pnpm test:cov`     | Run unit tests with coverage                     |
-| `pnpm test:e2e`     | Run end-to-end tests                             |
-| `pnpm check`        | Run format check, lint, typecheck, and tests     |
-| `pnpm check:ci`     | Run lint, typecheck, unit/e2e tests, and build   |
-| `pnpm db:generate`  | Generate a migration from the Drizzle schema     |
-| `pnpm db:migrate`   | Apply pending migrations                         |
-| `pnpm db:push`      | Push schema changes directly (dev only)          |
-| `pnpm db:studio`    | Open Drizzle Studio                              |
-| `pnpm db:seed`      | Run seed scripts                                 |
+| Command             | Purpose                                                       |
+| ------------------- | ------------------------------------------------------------- |
+| `pnpm start`        | Run the application (no watch)                                |
+| `pnpm start:dev`    | Run the application in watch mode                             |
+| `pnpm start:debug`  | Run with debugger attached (watch mode)                       |
+| `pnpm build`        | Build the application                                         |
+| `pnpm start:prod`   | Run the production build (`node dist/main`)                   |
+| `pnpm lint`         | Run Oxlint on `src/`, `test/`, and `scripts/`                 |
+| `pnpm lint:fix`     | Run Oxlint with auto-fix on the whole repository              |
+| `pnpm format`       | Format TypeScript files under `src/` and `test/`              |
+| `pnpm format:check` | Check formatting of TypeScript files under `src/` and `test/` |
+| `pnpm typecheck`    | Type-check the application                                    |
+| `pnpm test`         | Run unit tests                                                |
+| `pnpm test:watch`   | Run unit tests in watch mode                                  |
+| `pnpm test:cov`     | Run unit tests with coverage                                  |
+| `pnpm test:debug`   | Run tests in band with `--inspect-brk`                        |
+| `pnpm test:e2e`     | Run end-to-end tests                                          |
+| `pnpm check`        | Run format check, lint, typecheck, and tests                  |
+| `pnpm check:ci`     | Run lint, typecheck, unit/e2e tests, and build                |
+| `pnpm db:generate`  | Generate a migration from the Drizzle schema                  |
+| `pnpm db:migrate`   | Apply pending migrations                                      |
+| `pnpm db:push`      | Push schema changes directly (dev only)                       |
+| `pnpm db:studio`    | Open Drizzle Studio                                           |
+| `pnpm db:seed`      | Run seed scripts (`tsx scripts/seeds/index`)                  |
+| `pnpm db:reset`     | Currently runs the same script as `db:seed`                   |
 
 > **Seed data:** Do not run `pnpm db:seed` against real or shared data. The current seed scripts use a fixed sample password and need their role mapping reviewed. Use them only with a disposable local development database.
 
@@ -279,7 +299,7 @@ Git hooks are installed by `pnpm install`:
 
 - **Before each commit:** Husky runs `lint-staged` (Oxlint and Prettier on applicable staged files), then runs the unit tests. If either step fails, Git rejects the commit.
 - **Commit messages:** Commitlint checks messages against Conventional Commits using the `commit-msg` hook.
-- **GitHub Actions:** CI runs lint, typecheck, unit/e2e tests, and build on pushes and pull requests against a PostgreSQL 16 service container.
+- **GitHub Actions:** CI (Node.js 24.22.1, pnpm 12.8.1, `pnpm install --frozen-lockfile`) runs `pnpm check:ci` — lint, typecheck, unit/e2e tests, and build — on pushes to any branch and on pull requests, with PostgreSQL 16 and Redis 7 service containers.
 
 Examples of valid commit messages:
 
@@ -335,6 +355,9 @@ crm-tool-nest/
 │       └── utils/                   #   Cookie utilities, helpers
 ├── drizzle/                         # SQL migrations and Drizzle metadata
 ├── scripts/                         # Seed and development utilities
+│   ├── seeds/                       #   Seed entry point (index.ts) and seed module
+│   ├── seed.roles.ts                #   Role seed data
+│   └── seed.users.ts                #   User seed data
 ├── test/                            # End-to-end tests (Supertest)
 ├── .github/workflows/ci.yml         # GitHub Actions CI pipeline
 ├── drizzle.config.ts                # Drizzle Kit configuration
@@ -342,6 +365,9 @@ crm-tool-nest/
 ├── tsconfig.json                    # TypeScript configuration (strict, NodeNext)
 ├── oxlint.json                      # Oxlint rules
 ├── commitlint.config.ts             # Conventional Commits rules
+├── pnpm-workspace.yaml              # pnpm settings (allowBuilds, auditConfig)
+├── .nvmrc                           # Pinned Node.js version (24.22.1)
+├── .husky/                          # Git hooks (pre-commit, commit-msg)
 └── .prettierrc                      # Prettier configuration
 ```
 
